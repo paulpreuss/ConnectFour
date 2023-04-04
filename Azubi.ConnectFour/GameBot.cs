@@ -26,7 +26,7 @@ public class GameBot : IGameBot
         }
         else if (_difficulty == Difficulty.Normal)
         {
-            return CalculateNormalBotPosition(field) + 1;
+            return CalculateNormalBotPosition(field);
         }
         else
         {
@@ -42,18 +42,18 @@ public class GameBot : IGameBot
     private int CalculateNormalBotPosition(char[][] field)
     {
         if (MoveToFour(field) > 0) 
-            return MoveToFour(field);
+            return MoveToFour(field) + 1;
         if (MoveToThree(field) > 0)
-            return MoveToThree(field);
+            return MoveToThree(field) + 1;
         if (MoveToTwo(field) > 0)
-            return MoveToTwo(field);
+            return MoveToTwo(field) + 1;
 
         return CalculateEasyBotPosition();
     }
 
     private int CalculateHardBotPosition(char[][] field)
     {
-        return 0;
+        return CalculateNormalBotPosition(field);
     }
 
     private int MoveToFour(char[][] field)
