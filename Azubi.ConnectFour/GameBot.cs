@@ -6,15 +6,14 @@ public class GameBot : IGameBot
 {
     private readonly Difficulty _difficulty;
     private readonly char _botSymbol;
+    private readonly char _enemySymbol;
     private readonly Random _random;
 
     public GameBot(Difficulty difficulty, bool isPlayerOne)
     { 
         _difficulty = difficulty;
-        if (isPlayerOne)
-            _botSymbol = 'X';
-        else
-            _botSymbol = 'O';
+        _botSymbol = isPlayerOne ? 'X' : 'O';
+        _enemySymbol = isPlayerOne ? 'O' : 'X';
         _random = new Random();
     }
 
@@ -41,11 +40,11 @@ public class GameBot : IGameBot
 
     private int CalculateNormalBotPosition(char[][] field)
     {
-        if (MoveToFour(field) > 0) 
+        if (MoveToFour(field) > -1) 
             return MoveToFour(field) + 1;
-        if (MoveToThree(field) > 0)
+        if (MoveToThree(field) > -1)
             return MoveToThree(field) + 1;
-        if (MoveToTwo(field) > 0)
+        if (MoveToTwo(field) > -1)
             return MoveToTwo(field) + 1;
 
         return CalculateEasyBotPosition();
@@ -53,7 +52,32 @@ public class GameBot : IGameBot
 
     private int CalculateHardBotPosition(char[][] field)
     {
+        if (MoveToFour(field) > -1)
+            return MoveToFour(field) + 1;
+        if (EnemyMoveToFour(field) > -1)
+            return EnemyMoveToFour(field) + 1;
+
         return CalculateNormalBotPosition(field);
+    }
+
+    private int EnemyMoveToFour(char[][] field)
+    {
+        for (var i = 0; i < field.Length; i++)
+        {
+            for (var j = 0; j < field[i].Length; j++)
+            {
+                if (field[i][j] != _enemySymbol)
+                    continue;
+                if (EnemyMoveHorizontallyToFour(field, j, i) > 0)
+                    return EnemyMoveHorizontallyToFour(field, j, i);
+                if (EnemyMoveVerticallyToFour(field, j, i) > 0)
+                    return EnemyMoveVerticallyToFour(field, j, i);
+                if (EnemyMoveDiagonallyToFour(field, j, i) > 0)
+                    return EnemyMoveDiagonallyToFour(field, j, i);
+            }
+        }
+
+        return -1;
     }
 
     private int MoveToFour(char[][] field)
@@ -73,7 +97,7 @@ public class GameBot : IGameBot
             }
         }
 
-        return 0;
+        return -1;
     }
 
     private int MoveToThree(char[][] field)
@@ -93,7 +117,7 @@ public class GameBot : IGameBot
             }
         }
 
-        return 0;
+        return -1;
     }
 
     private int MoveToTwo(char[][] field)
@@ -113,7 +137,74 @@ public class GameBot : IGameBot
             }
         }
 
-        return 0;
+        return -1;
+    }
+
+    private int EnemyMoveHorizontallyToFour(char[][] field, int x, int y)
+    {
+        if (x < 5)
+        {
+            if (field[y][x] == _enemySymbol && field[y][x + 1] == _enemySymbol
+                && field[y][x + 2] == _enemySymbol && field[y][x + 3] == '-')
+                if (FieldExistsUnderMovePosition(field, x + 3, y))
+                    return x + 3;
+        }
+        else
+        {
+            if (field[y][x] == _enemySymbol && field[y][x - 1] == _enemySymbol
+                && field[y][x - 2] == _enemySymbol && field[y][x - 3] == '-')
+                if (FieldExistsUnderMovePosition(field, x - 3, y))
+                    return x - 3;
+        }
+
+        return -1;
+    }
+
+    private int EnemyMoveVerticallyToFour(char[][] field, int x, int y)
+    {
+        if (y > 4)
+        {
+            if (field[y][x] == _enemySymbol && field[y - 1][x] == _enemySymbol
+                && field[y - 2][x] == _enemySymbol && field[y - 3][x] == '-')
+                return x;
+        }
+
+        return -1;
+    }
+
+    private int EnemyMoveDiagonallyToFour(char[][] field, int x, int y)
+    {
+        if (x < 5 && y < 5)
+        {
+            if (field[y][x] == _enemySymbol && field[y + 1][x + 1] == _enemySymbol
+                && field[y + 2][x + 2] == _enemySymbol && field[y + 3][x + 3] == '-')
+                if (FieldExistsUnderMovePosition(field, x + 3, y + 3))
+                    return x + 3;
+        }
+        else if (x > 4 && y < 5)
+        {
+            if (field[y][x] == _enemySymbol && field[y + 1][x - 1] == _enemySymbol
+               && field[y + 2][x - 2] == _enemySymbol && field[y + 3][x - 3] == '-')
+                if (FieldExistsUnderMovePosition(field, x - 3, y + 3))
+                    return x - 3;
+        }
+        else if (x < 5 && y > 4)
+        {
+            if (field[y][x] == _enemySymbol && field[y - 1][x + 1] == _enemySymbol
+                && field[y - 2][x + 2] == _enemySymbol && field[y - 3][x + 3] == '-')
+                if (FieldExistsUnderMovePosition(field, x + 3, y - 3))
+                    return x + 3;
+        }
+
+        else
+        {
+            if (field[y][x] == _enemySymbol && field[y - 1][x - 1] == _enemySymbol
+                && field[y - 2][x - 2] == _enemySymbol && field[y - 3][x - 3] == '-')
+                if (FieldExistsUnderMovePosition(field, x - 3, y - 3))
+                    return x - 3;
+        }
+
+        return -1;
     }
 
     private int MoveHorizontallyToFour(char[][] field, int x, int y)
@@ -133,7 +224,7 @@ public class GameBot : IGameBot
                     return x - 3;
         }
 
-        return 0;
+        return -1;
     }
 
     private int MoveVerticallyToFour(char[][] field, int x, int y)
@@ -145,7 +236,7 @@ public class GameBot : IGameBot
                 return x;
         }
 
-        return 0;
+        return -1;
     }
 
     private int MoveDiagonallyToFour(char[][] field, int x, int y)
@@ -180,7 +271,7 @@ public class GameBot : IGameBot
                     return x - 3;
         }
 
-        return 0;
+        return -1;
     }
 
     private int MoveHorizontallyToThree(char[][] field, int x, int y)
@@ -200,7 +291,7 @@ public class GameBot : IGameBot
                     return x - 2;
         }
 
-        return 0;
+        return -1;
     }
 
     private int MoveVerticallyToThree(char[][] field, int x, int y)
@@ -212,7 +303,7 @@ public class GameBot : IGameBot
                 return x;
         }
 
-        return 0;
+        return -1;
     }
 
     private int MoveDiagonallyToThree(char[][] field, int x, int y)
@@ -247,7 +338,7 @@ public class GameBot : IGameBot
                     return x - 2;
         }
 
-        return 0;
+        return -1;
     }
 
     private int MoveHorizontallyToTwo(char[][] field, int x, int y)
@@ -267,7 +358,7 @@ public class GameBot : IGameBot
                     return x - 1;
         }
 
-        return 0;
+        return -1;
     }
 
     private int MoveVerticallyToTwo(char[][] field, int x, int y)
@@ -279,7 +370,7 @@ public class GameBot : IGameBot
                 return x;
         }
 
-        return 0;
+        return -1;
     }
 
     private int MoveDiagonallyToTwo(char[][] field, int x, int y)
@@ -314,7 +405,7 @@ public class GameBot : IGameBot
                     return x - 1;
         }
 
-        return 0;
+        return -1;
     }
 
     private bool FieldExistsUnderMovePosition(char[][] field, int x, int y)

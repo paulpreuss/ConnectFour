@@ -39,6 +39,8 @@ while (!setup)
         Multiplayer();
         setup = true;
     }
+
+    Console.ReadKey();
 }
 
 void Singleplayer()
